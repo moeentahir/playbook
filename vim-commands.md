@@ -6,3 +6,10 @@ ZQ - quit without saving
 
 # Movements
 { - move a paragraph
+
+# Screen movements
+Ctrl F - Forward full screen 
+Ctrl B - Backward full screen
+
+Ctrl D - half screen down
+Ctrl U - half screen up
