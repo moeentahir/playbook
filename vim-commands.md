@@ -105,3 +105,7 @@ ap - copy around paragraph
  
 ## File manipulation 
 :wq ~/dev/newfile.txt  
+
+## G Command
+:g/^$/d > delete all white lines
+
