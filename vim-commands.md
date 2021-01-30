@@ -109,3 +109,5 @@ ap - copy around paragraph
 ## G Command
 :g/^$/d > delete all white lines
 
+## Widnow and buffer management
+:qa   - Clos all windows
