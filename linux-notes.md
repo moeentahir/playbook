@@ -3,7 +3,8 @@
 - Centos is a fork of redhat
 - Ubuntu is fork of debian
 
-## Basic commands:
+## Commands:
+### Basic
 man hier  > help about file system hierarchy  
 <img src='./images/hierarchy.png' width='500'/>  
 ```
@@ -12,6 +13,17 @@ apt > Advance packaging tool
 dnf > A rewrite of yum and default package manager for fedora  
 last > See loging and logout information  
 uptime > information about how long the machine is up for  
+```
+### Archive
+```
+for i in {1..100}; do touch test_file_$i; done > loop with a range  
+tar cf archive.tar test_file_* > create tar
+tar tf archive.tar > view(tail) the contents for tar
+tar xf archive.tar > extract all files
+tar xf archive.tar file3 > extract only one file
+tar rf archive.tar file3 > add file3 to tar
+tar xf archive.tar --wildcards 'test_file_?' > only extract files that start with test_file_ and git only one digit after that
+tar --delete --file=archive.tar file2 > delete file2 from tar
 ```
 
 ## Install Package
