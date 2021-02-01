@@ -3,14 +3,17 @@
 - Centos is a fork of redhat
 - Ubuntu is fork of debian
 
+<<<<<<< HEAD
 ## Basic commands:
-
 man hier  > help about file system hierarchy  
+<img src='./images/hierarchy.png' width='500'/>  
+```
 yum > Yellowdog update manager  
 apt > Advance packaging tool  
 dnf > A rewrite of yum and default package manager for fedora  
 last > See loging and logout information  
 uptime > information about how long the machine is up for  
+```
 
 ## Install Package
 ### RPM
