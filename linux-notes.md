@@ -3,7 +3,6 @@
 - Centos is a fork of redhat
 - Ubuntu is fork of debian
 
-<<<<<<< HEAD
 ## Basic commands:
 man hier  > help about file system hierarchy  
 <img src='./images/hierarchy.png' width='500'/>  
