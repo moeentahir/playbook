@@ -25,6 +25,12 @@ tar rf archive.tar file3 > add file3 to tar
 tar xf archive.tar --wildcards 'test_file_?' > only extract files that start with test_file_ and git only one digit after that
 tar --delete --file=archive.tar file2 > delete file2 from tar
 ```
+### Compression
+```
+tar czf archive.tar.gz file* > 'create gzip file' > compress in gzip format
+tar cjf archive.tar.gz file* > 'create bzip2 file' > compress in bzip2  format
+zip -r archive.zip file* > create zip file
+```
 
 ## Install Package
 ### RPM
