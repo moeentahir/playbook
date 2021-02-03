@@ -52,3 +52,35 @@ make
 sudo make install
 sudo make uninstall
 ```
+## Hardware
+```
+cat /etc/issue > Display Ubuntu version
+cat /proc/cpuinfo > display cpu information
+cat /prov/version > Display version of os
+free -m > See free memory
+df -h > 
+ifconfig > need to install setup-tools to see network interface
+```
+## Where data is stored?
+### Configuration
+```
+/boot > Kernel related files - have a look at all the files to get familiar with
+/boot/config-5.8.0-38-generic > get boot related configuration
+/boot/grub/grub.cfg > 
+/etc/fstab > config related to mounted devices
+blkid > Get uuid against block devices
+/etc/passwd > get list of all the users
+/etc/group > get list of all the groups
+/etc/hosts > list of all the hosts
+/etc/resolv.conf > this is where we specify name server
+/etc/vim/vimrc > common vim settings
+/sys > datastructure for Kernel
+mount | grep sysfs > see where this is mounted
+```
+### Processes
+```
+/proc > 1 directory for each process running on the machine
+/proc/2872/status > 
+/proc/self/status 
+/proc/self/status
+```
