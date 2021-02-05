@@ -84,3 +84,54 @@ mount | grep sysfs > see where this is mounted
 /proc/self/status 
 /proc/self/status
 ```
+### Messages and logging
+```
+dmesg | grep -i bluetooth .> Show kernal message. This is a ring buffer, which means new messages get added and old get deleted. This is normally used to troubleshoot hardware.
+/var/log/syslog > general system logs
+/var/log/auth.log
+/var/log/boot.log
+/var/log/faillog
+```
+## The network
+Switches - route traffic within the network, switch is then connected to router if traffic needs to be sent to internet.
+Router - route traffic outside network
+### Querying the network
+```
+ip addr show
+ping example.com
+host www.example.com > to translate domain to ip versio 4 or 6
+dig example.com > Also used to translate domain to ip but it gives more information
+dig @1.1.1.1 example.com > Ask a different server to resolve dns
+/etc/resolv.conf > Cofig file to determine which hosts to use for DNS queries.
+/etc/hosts > Use for static mapping for IP addresses to host names
+```
+### Network configuration
+```
+ip route show > show the current route table
+```
+Result of above command on my ubuntu machine is:
+```
+default via 192.168.0.1 dev wlp2s0 proto dhcp metric 600 
+169.254.0.0/16 dev wlp2s0 scope link metric 1000 
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown 
+192.168.0.0/24 dev wlp2s0 proto kernel scope link src 192.168.0.45 metric 600 
+```
+The first line of the results say that the default route be via 192.168.0.1 using device wlp2s0
+Second line says if I want to talk to address in the range 169.254.0.0/16, I do not go via router, instead I go directly to the device wlp2s0
+Third and fourth lines are similar to second line
+#### Other Commands
+```
+ifconfig > View and change network interface Configuration
+netstat > View listing services and active connections
+netstat -tlnp > to for tcp, l for listening, n for numeric or in other words give me ip names and not the hosnames, p is for PID
+ss > Same as netstat
+ss -tlnp > show tcp traffic
+ss -ulnp > Show udp traffic
+nmcli > Command line tool to control network manager
+nmcli device show > Show information about known devices
+nmcli connection show > Show list of active conneciton profile
+```
+If you want to see what port is for what
+```
+cat /etc/services | grep 22
+```
