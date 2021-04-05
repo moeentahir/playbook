@@ -63,3 +63,11 @@ where id='mctds'
 - Assign ranges to your nodes based on the equal parts of that 128 bit number.
     
 
+### Troubleshooting 
+- How do I know if my data model is good?  
+test it using tools like no-sql 'bench' and tlp 'stress'. As long as partition stays in thousand of MBs, we are good.
+- How do I change primary key?  
+Create new table with new primary Key
+Move the data
+Start doing shadow writes
+Once the data is syncronised, start using new table
