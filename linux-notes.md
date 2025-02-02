@@ -38,6 +38,9 @@ Amazon EBS volumes are exposed as NVMe block devices on Amazon EC2 instances. Th
 
 ```
 nvme id-ctrl -v /head/nvme2n1 | head > check what device is mapped to what volume in EC2
+for device in /dev/nvme*n1; do
+    echo "$device: $(nvme id-ctrl $device | grep 'sn')" 
+done
 
 ```
 
