@@ -32,6 +32,13 @@ tar cjf archive.tar.gz file* > 'create bzip2 file' > compress in bzip2  format
 zip -r archive.zip file* > create zip file
 ```
 
+### Disk management
+Amazon EBS volumes are exposed as NVMe block devices on Amazon EC2 instances. The device names are /dev/nvme0n1, /dev/nvme1n1, and so on. The device names that you specify in a block device mapping are renamed using NVMe device names (/dev/nvme[0-26]n1). The block device driver can assign NVMe device names in a different order than you specified for the volumes in the block device mapping.
+```
+nvme id-ctrl -v /head/nvme2n1 | head > check what device is mapped to what volume in EC2
+
+```
+
 ## Install Package
 ### RPM
 ```
