@@ -46,6 +46,11 @@ lsof -p <PID>
 strace -p <PID>
 
 ```
+### Background Sevices
+```
+systemctl list-units --type=service --state=running
+
+```
 ### Disk management
 Amazon EBS volumes are exposed as NVMe block devices on Amazon EC2 instances. The device names are /dev/nvme0n1, /dev/nvme1n1, and so on. The device names that you specify in a block device mapping are renamed using NVMe device names (/dev/nvme[0-26]n1). The block device driver can assign NVMe device names in a different order than you specified for the volumes in the block device mapping.
 ![image](https://github.com/user-attachments/assets/eb0c4504-65e4-46d8-9189-abbbc0ecf796)
