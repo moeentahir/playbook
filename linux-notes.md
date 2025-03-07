@@ -31,7 +31,21 @@ tar czf archive.tar.gz file* > 'create gzip file' > compress in gzip format
 tar cjf archive.tar.gz file* > 'create bzip2 file' > compress in bzip2  format
 zip -r archive.zip file* > create zip file
 ```
+### Process Information
+```
+ps aux | grep <process_name>
+ps -p <PID> -o pid,user,%cpu,%mem,vsz,rss,tty,stat,start,time,command
+top
+htop
+pidstat -p <PID>
+cat /proc/<PID>/status     # General process info
+cat /proc/<PID>/cmdline    # Command-line arguments
+cat /proc/<PID>/environ    # Environment variables
+ls -l /proc/<PID>/fd/      # Open file descriptors
+lsof -p <PID>
+strace -p <PID>
 
+```
 ### Disk management
 Amazon EBS volumes are exposed as NVMe block devices on Amazon EC2 instances. The device names are /dev/nvme0n1, /dev/nvme1n1, and so on. The device names that you specify in a block device mapping are renamed using NVMe device names (/dev/nvme[0-26]n1). The block device driver can assign NVMe device names in a different order than you specified for the volumes in the block device mapping.
 ![image](https://github.com/user-attachments/assets/eb0c4504-65e4-46d8-9189-abbbc0ecf796)
