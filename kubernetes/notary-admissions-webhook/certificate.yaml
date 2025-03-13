@@ -1,0 +1,24 @@
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: my-webhook-cert
+  namespace: my-namespace
+spec:
+  secretName: my-webhook-tls
+  duration: 365d
+  renewBefore: 30d
+  subject:
+    organizations:
+      - my-org
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  usages:
+    - server auth
+  dnsNames:
+    - my-webhook-service.my-namespace.svc
+  issuerRef:
+    name: my-ca-issuer
+    kind: Issuer
+    group: cert-manager.io
