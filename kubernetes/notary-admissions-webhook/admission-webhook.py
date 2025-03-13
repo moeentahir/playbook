@@ -1,16 +1,20 @@
-
-from flask import Flask, request, jsonify
+import os
 import subprocess
-import json
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
+
+# Set Notary trust server (default to your server)
+NOTARY_SERVER = os.getenv("DOCKER_CONTENT_TRUST_SERVER", "https://notary.container.ucds.io")
 
 def is_image_signed(image):
     """Check if the image is signed using `docker trust inspect`."""
     try:
+        # Run `docker trust inspect` with Notary server environment variable
         result = subprocess.run(
             ["docker", "trust", "inspect", image],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            env={**os.environ, "DOCKER_CONTENT_TRUST_SERVER": NOTARY_SERVER}
         )
         output = result.stdout.strip()
 
@@ -27,9 +31,7 @@ def validate():
     request_data = request.json
 
     # Extract images from the admission request
-    images = []
-    for container in request_data["request"]["object"]["spec"]["containers"]:
-        images.append(container["image"])
+    images = [container["image"] for container in request_data["request"]["object"]["spec"]["containers"]]
 
     unsigned_images = [img for img in images if not is_image_signed(img)]
 
@@ -50,4 +52,4 @@ def validate():
     })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8443)  # No TLS, Linkerd handles it
+    app.run(host="0.0.0.0", port=8080)  # HTTP only
