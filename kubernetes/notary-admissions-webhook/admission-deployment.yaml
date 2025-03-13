@@ -1,0 +1,30 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-signing-webhook
+  annotations:
+    linkerd.io/inject: enabled
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-signing-webhook
+  template:
+    metadata:
+      labels:
+        app: image-signing-webhook
+    spec:
+      containers:
+      - name: webhook
+        image: yourtrustedregistry.com/admission-webhook:latest
+        ports:
+        - containerPort: 443
+        volumeMounts:
+        - name: certs
+          mountPath: "/certs"
+          readOnly: true
+      volumes:
+      - name: certs
+        secret:
+          secretName: webhook-tls

@@ -1,0 +1,22 @@
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: image-signing-webhook
+webhooks:
+  - name: image-signing.notary.container.ucds.io
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+        operations: ["CREATE"]
+    clientConfig:
+      service:
+        name: image-signing-webhook
+        namespace: default
+        path: "/"
+      caBundle: <BASE64_ENCODED_CA_CERT>
+    timeoutSeconds: 5
+    failurePolicy: Fail
