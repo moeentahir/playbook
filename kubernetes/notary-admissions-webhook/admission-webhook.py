@@ -33,6 +33,10 @@ def is_image_signed(image):
         print(f"Error checking image signature: {e}")
         return False
 
+@app.get("/healthz")
+def health_check():
+    return {"status": "ok"}
+
 @app.route("/", methods=["POST"])
 def validate():
     request_data = request.json
