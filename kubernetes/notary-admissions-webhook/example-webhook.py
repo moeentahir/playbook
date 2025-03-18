@@ -1,40 +1,43 @@
-
 from flask import Flask, request, jsonify
-from kubernetes.client import V1AdmissionReview, V1AdmissionResponse, V1ObjectMeta
-from kubernetes.client.rest import ApiException
 
 app = Flask(__name__)
 
 @app.route("/validate", methods=["POST"])
 def validate():
-    # Get the AdmissionReview object
     admission_review = request.get_json()
 
-    # Create a response object
-    response = V1AdmissionResponse()
-
-    # Check if the admission review contains the required label
+    # Extract relevant details from the request
     try:
-        # Extracting the pod metadata
-        object_metadata = admission_review["request"]["object"]["metadata"]
+        req = admission_review["request"]
+        object_metadata = req["object"]["metadata"]
         labels = object_metadata.get("labels", {})
 
-        # You can customize the label check as needed
+        # Check if the required label exists
         if "example-label" not in labels:
-            response.allowed = False
-            response.result = {"message": "Missing 'example-label' in labels"}
+            allowed = False
+            message = "Missing required label: 'example-label'"
         else:
-            response.allowed = True
-    except KeyError as e:
-        response.allowed = False
-        response.result = {"message": f"Error processing request: {str(e)}"}
+            allowed = True
+            message = "Validation successful"
 
-    # Return the response in AdmissionReview format
-    admission_response = V1AdmissionReview(
-        response=response
-    )
-    
-    return jsonify(admission_response.to_dict())
+    except KeyError as e:
+        allowed = False
+        message = f"Error processing request: {str(e)}"
+
+    # Construct the AdmissionReview response
+    admission_response = {
+        "apiVersion": "admission.k8s.io/v1",
+        "kind": "AdmissionReview",
+        "response": {
+            "uid": admission_review["request"]["uid"],
+            "allowed": allowed,
+            "status": {
+                "message": message
+            }
+        }
+    }
+
+    return jsonify(admission_response)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=443, ssl_context=("certs/tls.crt", "certs/tls.key"))
