@@ -22,12 +22,12 @@ spec:
         - containerPort: 443
         volumeMounts:
         - name: certs
-          mountPath: "/certs"
+          mountPath: "/etc/certs"
           readOnly: true
       volumes:
       - name: certs
         secret:
-          secretName: webhook-tls
+          secretName: image-validator-tls
 ---
 apiVersion: v1
 kind: Service

@@ -1,24 +1,37 @@
-
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ca-issuer
+  namespace: image-validation
+spec:
+  ca:
+    secretName: ca-secret
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: my-webhook-cert
-  namespace: my-namespace
+  name: ca-cert
+  namespace: image-validation
 spec:
-  secretName: my-webhook-tls
-  duration: 365d
-  renewBefore: 30d
-  subject:
-    organizations:
-      - my-org
-  privateKey:
-    algorithm: RSA
-    size: 2048
-  usages:
-    - server auth
-  dnsNames:
-    - my-webhook-service.my-namespace.svc
+  isCA: true
+  duration: 168h # 7 days
+  secretName: ca-secret
+  commonName: ca-cert
   issuerRef:
-    name: my-ca-issuer
+    name: selfsigned-issuer
     kind: Issuer
-    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: image-validator-tls
+  namespace: image-validation
+spec:
+  duration: 168h # 7 days
+  renewBefore: 24h # Renew 1 day before expiry
+  secretName: image-validator-tls
+  issuerRef:
+    name: ca-issuer
+    kind: Issuer
+  dnsNames:
+    - image-validator.image-validation.svc
