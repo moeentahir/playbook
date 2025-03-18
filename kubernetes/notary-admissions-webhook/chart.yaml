@@ -1,0 +1,166 @@
+
+apiVersion: v2
+name: image-validator
+version: 0.1.0
+description: A Helm chart for deploying an image validation webhook with automatic CA certificate management
+appVersion: "v0.1.0"
+---
+# values.yaml
+namespace: image-validation
+image:
+  repository: nexus.co.uk/moeentahir
+  tag: v0.1.0
+  pullPolicy: IfNotPresent
+replicaCount: 1
+service:
+  port: 443
+tls:
+  duration: 168h # 7 days
+  renewBefore: 24h # Renew 1 day before expiry
+caSecretName: ca-secret
+caNamespace: cert-manager
+---
+# templates/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace }}
+---
+# templates/issuer.yaml
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-issuer
+  namespace: {{ .Values.caNamespace }}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ca-cert
+  namespace: {{ .Values.caNamespace }}
+spec:
+  isCA: true
+  duration: 8760h # 1 year
+  renewBefore: 720h # Renew 1 month before expiry
+  secretName: {{ .Values.caSecretName }}
+  commonName: ca-cert
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ca-issuer
+  namespace: {{ .Values.caNamespace }}
+spec:
+  ca:
+    secretName: {{ .Values.caSecretName }}
+---
+# templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-validator
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: image-validator
+  template:
+    metadata:
+      labels:
+        app: image-validator
+    spec:
+      containers:
+        - name: image-validator
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+            - name: tls-certificates
+              mountPath: /etc/certs
+              readOnly: true
+      volumes:
+        - name: tls-certificates
+          secret:
+            secretName: image-validator-tls
+---
+# templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-validator
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 8443
+  selector:
+    app: image-validator
+---
+# templates/certificate.yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: image-validator-tls
+  namespace: {{ .Values.namespace }}
+spec:
+  duration: {{ .Values.tls.duration }}
+  renewBefore: {{ .Values.tls.renewBefore }}
+  secretName: image-validator-tls
+  issuerRef:
+    name: ca-issuer
+    kind: Issuer
+    namespace: {{ .Values.caNamespace }}
+  dnsNames:
+    - image-validator.{{ .Values.namespace }}.svc
+---
+# templates/webhook.yaml
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: image-validator
+webhooks:
+  - name: image-validator.{{ .Values.namespace }}.svc
+    clientConfig:
+      service:
+        name: image-validator
+        namespace: {{ .Values.namespace }}
+        path: "/validate"
+      caBundle: ""
+    rules:
+      - apiGroups: ["*"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
+    failurePolicy: Fail
+---
+# templates/patch-webhook-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: patch-webhook
+  namespace: {{ .Values.namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: patch-webhook
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              sleep 10 # Ensure CA secret is available
+              CA_BUNDLE=$(kubectl get secret -n {{ .Values.caNamespace }} {{ .Values.caSecretName }} -o jsonpath='{.data.ca\.crt}')
+              kubectl patch validatingwebhookconfiguration image-validator --type='json' -p="[{\"op\": \"replace\", \"path\": \"/webhooks/0/clientConfig/caBundle\", \"value\":\"$CA_BUNDLE\"}]"
+      restartPolicy: Never
