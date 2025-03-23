@@ -37,3 +37,7 @@ CMD 5
 docker run ubuntu-sleeper               # will run as `sleep 5`
 docker run ubuntu-sleeper 10            # will run as `sleep 10`
 ```
+If you want to change the program for the ENTRYPOINT
+```
+docker run --entrypint sleep2.0 ubuntu-sleeper 10 # this will run the program as `sleep2.0 10`
+```
