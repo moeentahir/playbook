@@ -47,3 +47,5 @@ The ENTRYPOINT specifies a command that will always be executed when the contain
 If you want to make an image dedicated to a specific command you will use ENTRYPOINT ["/path/dedicated_command"]
 
 Otherwise, if you want to make an image for general purpose, you can leave ENTRYPOINT unspecified and use CMD ["/path/dedicated_command"] as you will be able to override the setting by supplying arguments to docker run.
+
+![Image](images/kubernetes-entrypoint.png)
