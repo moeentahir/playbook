@@ -48,4 +48,4 @@ If you want to make an image dedicated to a specific command you will use ENTRYP
 
 Otherwise, if you want to make an image for general purpose, you can leave ENTRYPOINT unspecified and use CMD ["/path/dedicated_command"] as you will be able to override the setting by supplying arguments to docker run.
 
-![Image](images/kubernetes-entrypoint.png)
+![Image](images/kubenetes-entrypoint.png)
