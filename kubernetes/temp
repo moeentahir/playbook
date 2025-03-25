@@ -1,0 +1,44 @@
+provider "kubernetes" {
+  config_path = "~/.kube/config" # Adjust as needed
+}
+
+# Variable to hold the externally computed file checksum
+variable "file_checksum" {
+  description = "Checksum of the file content (computed externally)"
+  type        = string
+}
+
+# Store the checksum in Terraform state
+resource "terraform_data" "file_state" {
+  input = {
+    checksum = var.file_checksum
+  }
+}
+
+# Kubernetes job definition (runs only when the checksum changes)
+resource "kubernetes_job" "run_job" {
+  count = terraform_data.file_state.id != "" ? 1 : 0
+
+  metadata {
+    name      = "file-change-job"
+    namespace = "default"
+  }
+
+  spec {
+    template {
+      metadata {
+        labels = {
+          job = "file-change-job"
+        }
+      }
+      spec {
+        container {
+          name  = "job-container"
+          image = "busybox"
+          args  = ["echo", "File changed! Running job..."]
+        }
+        restart_policy = "Never"
+      }
+    }
+  }
+}
