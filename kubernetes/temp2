@@ -1,0 +1,59 @@
+provider "kubernetes" {
+  config_path = "~/.kube/config" # Adjust as needed
+}
+
+# Variable to hold the externally computed file checksum
+variable "file_checksum" {
+  description = "Checksum of the file content (computed externally)"
+  type        = string
+}
+
+# Fetch the existing ConfigMap (if it exists)
+data "kubernetes_config_map" "file_checksum" {
+  metadata {
+    name      = "file-checksum"
+    namespace = "default"
+  }
+}
+
+# Create or update the ConfigMap with the new checksum
+resource "kubernetes_config_map" "file_checksum" {
+  metadata {
+    name      = "file-checksum"
+    namespace = "default"
+  }
+
+  data = {
+    checksum = var.file_checksum
+  }
+}
+
+# Conditionally run the Kubernetes job if the checksum has changed
+resource "kubernetes_job" "run_job" {
+  count = data.kubernetes_config_map.file_checksum.data["checksum"] != var.file_checksum ? 1 : 0
+
+  metadata {
+    name      = "file-change-job"
+    namespace = "default"
+  }
+
+  spec {
+    template {
+      metadata {
+        labels = {
+          job = "file-change-job"
+        }
+      }
+      spec {
+        container {
+          name  = "job-container"
+          image = "busybox"
+          args  = ["echo", "File changed! Running job..."]
+        }
+        restart_policy = "Never"
+      }
+    }
+  }
+
+  depends_on = [kubernetes_config_map.file_checksum]
+}
