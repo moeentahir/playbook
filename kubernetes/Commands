@@ -1,0 +1,1 @@
+kubectl get namespaces -o=jsonpath='{range .items[*]}{"Namespace: "}{.metadata.name}{"\tAnnotation: "}{.metadata.annotations.openshift\.io/node-selector}{"\n"}{end}'
