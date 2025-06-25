@@ -1,0 +1,26 @@
+kubectl -n ingress-nginx patch deployment ingress-nginx-controller \
+  --type=json \
+  -p='[
+    {"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--metrics-per-host=true"},
+    {"op": "add", "path": "/spec/template/metadata/annotations", "value": {"prometheus.io/scrape": "true", "prometheus.io/port": "10254"}}
+  ]'
+
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ingress-nginx
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-nginx
+  namespaceSelector:
+    matchNames:
+    - ingress-nginx
+  endpoints:
+  - port: metrics
+    interval: 15s
+    path: /metrics
