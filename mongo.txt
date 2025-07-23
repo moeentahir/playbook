@@ -1,0 +1,26 @@
+db.agentAccess.aggregate([
+  {
+    $lookup: {
+      from: "loginDetails",
+      localField: "agentId",
+      foreignField: "agentId",
+      as: "logins"
+    }
+  },
+  {
+    $addFields: {
+      lastLogin: {
+        $max: "$logins.loginTime"
+      }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      agentId: 1,
+      firstName: 1,
+      lastName: 1,
+      lastLogin: 1
+    }
+  }
+]);
