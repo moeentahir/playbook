@@ -1,5 +1,10 @@
 db.agentAccess.aggregate([
   {
+    $match: {
+      enabled: true // filter for enabled agents
+    }
+  },
+  {
     $lookup: {
       from: "loginDetails",
       localField: "agentId",
@@ -12,6 +17,11 @@ db.agentAccess.aggregate([
       lastLogin: {
         $max: "$logins.loginTime"
       }
+    }
+  },
+  {
+    $match: {
+      lastLogin: { $gt: ISODate("2025-01-01T00:00:00Z") } // filter by last login date
     }
   },
   {
