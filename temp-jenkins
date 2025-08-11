@@ -47,7 +47,12 @@ def updateRepo(repoUrl) {
             $class: 'GitSCM',
             branches: [[name: '*/master']],
             doGenerateSubmoduleConfigurations: false,
-            extensions: [],
+            extensions: [
+                [$class: 'SubmoduleOption',
+                 disableSubmodules: false,
+                 recursiveSubmodules: true,
+                 trackingSubmodules: false]
+            ],
             userRemoteConfigs: [[
                 url: repoUrl,
                 credentialsId: env.GIT_CREDENTIALS_ID
