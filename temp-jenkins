@@ -1,0 +1,72 @@
+pipeline {
+    agent any
+
+    environment {
+        GIT_CREDENTIALS_ID = 'jenkis-ci-cd'
+    }
+
+    stages {
+        stage('Update AMI in parallel') {
+            parallel {
+                stage('Repo 1') {
+                    steps {
+                        script {
+                            updateRepo('git@github.com:org/repo1.git')
+                        }
+                    }
+                }
+                stage('Repo 2') {
+                    steps {
+                        script {
+                            updateRepo('git@github.com:org/repo2.git')
+                        }
+                    }
+                }
+                stage('Repo 3') {
+                    steps {
+                        script {
+                            updateRepo('git@github.com:org/repo3.git')
+                        }
+                    }
+                }
+                stage('Repo 4') {
+                    steps {
+                        script {
+                            updateRepo('git@github.com:org/repo4.git')
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+def updateRepo(repoUrl) {
+    dir(repoUrl.split('/').last().replace('.git','')) {
+        checkout([
+            $class: 'GitSCM',
+            branches: [[name: '*/master']],
+            doGenerateSubmoduleConfigurations: false,
+            extensions: [],
+            userRemoteConfigs: [[
+                url: repoUrl,
+                credentialsId: env.GIT_CREDENTIALS_ID
+            ]]
+        ])
+
+        sh 'make update-ami'
+
+        // Commit only if cloud.yaml changed
+        sh '''
+            if git status --porcelain | grep -q "cloud.yaml"; then
+                git config user.name "Jenkins CI"
+                git config user.email "jenkins@example.com"
+                git add cloud.yaml
+                git commit -m "Update AMI via Jenkins"
+                git push origin master
+            else
+                echo "No changes to cloud.yaml, skipping commit."
+            fi
+        '''
+    }
+}
