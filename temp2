@@ -1,0 +1,23 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'namespace', defaultValue: 'default', description: 'Namespace to check')
+        string(name: 'annotation_key', defaultValue: 'example.com/my-annotation', description: 'Annotation key to read')
+    }
+
+    stages {
+        stage('Get Namespace Annotation') {
+            steps {
+                script {
+                    def annotationValue = sh(
+                        script: "./get-namespace-annotation.sh ${params.namespace} ${params.annotation_key}",
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Annotation value: ${annotationValue}"
+                }
+            }
+        }
+    }
+}
