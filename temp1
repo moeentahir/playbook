@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+NAMESPACE="$1"
+ANNOTATION_KEY="$2"
+
+# Get the annotation value
+ANNOTATION_VALUE=$(kubectl get namespace "$NAMESPACE" \
+  -o jsonpath="{.metadata.annotations['$ANNOTATION_KEY']}")
+
+if [[ -z "$ANNOTATION_VALUE" ]]; then
+  echo "Annotation '$ANNOTATION_KEY' not found on namespace '$NAMESPACE'" >&2
+  exit 1
+fi
+
+echo "$ANNOTATION_VALUE"
