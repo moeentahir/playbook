@@ -1,5 +1,102 @@
-sudo mkfs -t xfs /dev/xvdf
-sudo mkdir /data
-sudo mount /dev/xvdf /data
-sudo blkid /dev/xvdf
-sudo nano /etc/fstab
+terraform {
+  required_providers {
+    rancher2 = {
+      source  = "rancher/rancher2"
+      version = ">=1.25.0"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">=5.0.0"
+    }
+  }
+}
+
+provider "rancher2" {
+  api_url   = "https://your-rancher-server-url"
+  token_key = "token-xxxxxx:yyyyyyyyyyyyyyyyyyyy"
+  insecure  = true
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+# -------------------------------------------------
+# 1️⃣ Create an S3 bucket to receive logs
+# -------------------------------------------------
+resource "aws_s3_bucket" "rancher_logs" {
+  bucket = "rancher-pod-logs-example"
+  acl    = "private"
+
+  versioning {
+    enabled = true
+  }
+
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+
+# Optional: S3 bucket policy to allow Rancher to write logs
+data "aws_iam_policy_document" "rancher_s3_policy" {
+  statement {
+    actions = [
+      "s3:PutObject",
+      "s3:PutObjectAcl",
+      "s3:GetBucketLocation"
+    ]
+    resources = [
+      "${aws_s3_bucket.rancher_logs.arn}/*"
+    ]
+    effect = "Allow"
+  }
+}
+
+# -------------------------------------------------
+# 2️⃣ Create a Rancher Logging configuration
+# -------------------------------------------------
+resource "rancher2_logging" "cluster_logging" {
+  cluster_id = "c-xxxxx"  # Replace with your Rancher cluster ID
+  name       = "s3-logging"
+
+  kind = "cluster"
+
+  # Output configuration for S3
+  output {
+    name = "s3-output"
+    s3_output {
+      bucket         = aws_s3_bucket.rancher_logs.bucket
+      region         = "us-east-1"
+      access_key_id  = var.aws_access_key_id
+      secret_access_key = var.aws_secret_access_key
+      endpoint       = "s3.amazonaws.com"
+      path           = "logs/${var.cluster_name}/"
+      compress       = true
+    }
+  }
+
+  # Logging configuration for all pods
+  output_refs = ["s3-output"]
+
+  enable_json_parsing = true
+  namespace            = "cattle-logging-system"
+}
+
+# -------------------------------------------------
+# 3️⃣ Variables (replace with your values)
+# -------------------------------------------------
+variable "aws_access_key_id" {
+  type        = string
+  description = "AWS Access Key for S3 upload"
+}
+
+variable "aws_secret_access_key" {
+  type        = string
+  description = "AWS Secret Key for S3 upload"
+  sensitive   = true
+}
+
+variable "cluster_name" {
+  type    = string
+  default = "demo-cluster"
+}
