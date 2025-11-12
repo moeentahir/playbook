@@ -1,23 +1,28 @@
-pipeline {
-    agent any
+resource "rancher2_logging" "cluster_logging" {
+  cluster_id = "c-xxxxx"
+  name       = "s3-logging"
+  kind       = "cluster"
 
-    parameters {
-        string(name: 'namespace', defaultValue: 'default', description: 'Namespace to check')
-        string(name: 'annotation_key', defaultValue: 'example.com/my-annotation', description: 'Annotation key to read')
+  flow {
+    name = "wrap-json"
+    match {
+      select = {}
     }
 
-    stages {
-        stage('Get Namespace Annotation') {
-            steps {
-                script {
-                    def annotationValue = sh(
-                        script: "./get-namespace-annotation.sh ${params.namespace} ${params.annotation_key}",
-                        returnStdout: true
-                    ).trim()
-
-                    echo "Annotation value: ${annotationValue}"
-                }
-            }
+    filter {
+      type = "record_transformer"
+      enable_ruby = true
+      records = [
+        {
+          "host"        = "${hostname}"
+          "environment" = "prod"
+          "namespace"   = "${kubernetes['namespace_name']}"
+          "service"     = "${kubernetes['container_name']}"
+          "message"     = "${record['log']}"
         }
+      ]
     }
+
+    output_refs = ["s3-output"]
+  }
 }
