@@ -3,6 +3,8 @@ kind: ClusterFlow
 metadata:
   name: remove-annotations-flow
   namespace: cattle-logging-system
+  annotations:
+    logging.banzaicloud.io/fluentd-flow-stream-optimizations: "false"
 spec:
   match:
     - select: {}
