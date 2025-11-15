@@ -1,28 +1,22 @@
-resource "rancher2_logging" "cluster_logging" {
-  cluster_id = "c-xxxxx"
-  name       = "s3-logging"
-  kind       = "cluster"
+variable "rancher_url" {
+  type = string
+}
 
-  flow {
-    name = "wrap-json"
-    match {
-      select = {}
-    }
+variable "rancher_token" {
+  type      = string
+  sensitive = true
+}
 
-    filter {
-      type = "record_transformer"
-      enable_ruby = true
-      records = [
-        {
-          "host"        = "${hostname}"
-          "environment" = "prod"
-          "namespace"   = "${kubernetes['namespace_name']}"
-          "service"     = "${kubernetes['container_name']}"
-          "message"     = "${record['log']}"
-        }
-      ]
-    }
+variable "keycloak_issuer" {
+  description = "Issuer URL for Keycloak realm"
+  type        = string
+}
 
-    output_refs = ["s3-output"]
-  }
+variable "keycloak_client_id" {
+  type = string
+}
+
+variable "keycloak_client_secret" {
+  type      = string
+  sensitive = true
 }
