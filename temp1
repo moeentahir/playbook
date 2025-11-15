@@ -2,101 +2,50 @@ terraform {
   required_providers {
     rancher2 = {
       source  = "rancher/rancher2"
-      version = ">=1.25.0"
-    }
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">=5.0.0"
+      version = ">= 3.0.0"
     }
   }
 }
 
 provider "rancher2" {
-  api_url   = "https://your-rancher-server-url"
-  token_key = "token-xxxxxx:yyyyyyyyyyyyyyyyyyyy"
-  insecure  = true
+  api_url   = var.rancher_url
+  token_key = var.rancher_token
 }
 
-provider "aws" {
-  region = "us-east-1"
-}
+# ------------------------------------------------------------
+# Enable Keycloak OIDC Auth in Rancher
+# ------------------------------------------------------------
+resource "rancher2_auth_config_keycloak" "keycloak" {
+  enabled = true
 
-# -------------------------------------------------
-# 1️⃣ Create an S3 bucket to receive logs
-# -------------------------------------------------
-resource "aws_s3_bucket" "rancher_logs" {
-  bucket = "rancher-pod-logs-example"
-  acl    = "private"
+  display_name = "Keycloak OIDC"
 
-  versioning {
-    enabled = true
-  }
+  # URL of your Keycloak instance
+  issuer       = var.keycloak_issuer       # e.g. https://keycloak.example.com/realms/myrealm
+  client_id    = var.keycloak_client_id
+  client_secret = var.keycloak_client_secret
 
-  lifecycle {
-    prevent_destroy = false
-  }
-}
+  # Rancher URL where Keycloak should redirect back
+  rancher_url  = var.rancher_url
 
-# Optional: S3 bucket policy to allow Rancher to write logs
-data "aws_iam_policy_document" "rancher_s3_policy" {
-  statement {
-    actions = [
-      "s3:PutObject",
-      "s3:PutObjectAcl",
-      "s3:GetBucketLocation"
-    ]
-    resources = [
-      "${aws_s3_bucket.rancher_logs.arn}/*"
-    ]
-    effect = "Allow"
-  }
-}
+  # Rancher OIDC settings
+  auth_endpoint         = "${var.keycloak_issuer}/protocol/openid-connect/auth"
+  token_endpoint        = "${var.keycloak_issuer}/protocol/openid-connect/token"
+  userinfo_endpoint     = "${var.keycloak_issuer}/protocol/openid-connect/userinfo"
 
-# -------------------------------------------------
-# 2️⃣ Create a Rancher Logging configuration
-# -------------------------------------------------
-resource "rancher2_logging" "cluster_logging" {
-  cluster_id = "c-xxxxx"  # Replace with your Rancher cluster ID
-  name       = "s3-logging"
+  scopes = [
+    "openid",
+    "profile",
+    "email",
+    "groups"
+  ]
 
-  kind = "cluster"
+  # Name of the attribute that maps to Rancher username
+  user_name_field = "preferred_username"
 
-  # Output configuration for S3
-  output {
-    name = "s3-output"
-    s3_output {
-      bucket         = aws_s3_bucket.rancher_logs.bucket
-      region         = "us-east-1"
-      access_key_id  = var.aws_access_key_id
-      secret_access_key = var.aws_secret_access_key
-      endpoint       = "s3.amazonaws.com"
-      path           = "logs/${var.cluster_name}/"
-      compress       = true
-    }
-  }
+  # Optional group mapping
+  groups_field    = "groups"
 
-  # Logging configuration for all pods
-  output_refs = ["s3-output"]
-
-  enable_json_parsing = true
-  namespace            = "cattle-logging-system"
-}
-
-# -------------------------------------------------
-# 3️⃣ Variables (replace with your values)
-# -------------------------------------------------
-variable "aws_access_key_id" {
-  type        = string
-  description = "AWS Access Key for S3 upload"
-}
-
-variable "aws_secret_access_key" {
-  type        = string
-  description = "AWS Secret Key for S3 upload"
-  sensitive   = true
-}
-
-variable "cluster_name" {
-  type    = string
-  default = "demo-cluster"
+  # Disable automatic user creation if you want manual control
+  allowed_principal_ids = []
 }
