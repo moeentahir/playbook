@@ -1,10 +1,36 @@
+
+{
+  "type": "oidcConfig",
+  "name": "keycloak",
+  "clientId": "${client_id}",
+  "clientSecret": "${client_secret}",
+  "issuer": "${issuer}",
+  "redirectUrl": "${redirect_url}/verify-auth",
+  "authEndpoint": "${issuer}/protocol/openid-connect/auth",
+  "tokenEndpoint": "${issuer}/protocol/openid-connect/token",
+  "userInfoEndpoint": "${issuer}/protocol/openid-connect/userinfo",
+  "rancherUrl": "${redirect_url}",
+  "scope": "openid profile email",
+  "enabled": true
+}
+
+
+locals {
+  keycloak_oidc_payload = templatefile("${path.module}/oidc_payload.json.tmpl", {
+    client_id     = var.oidc_client_id
+    client_secret = var.oidc_client_secret
+    issuer        = var.oidc_issuer
+    redirect_url  = var.rancher_redirect_url
+  })
+}
+
 resource "null_resource" "configure_rancher_oidc" {
   provisioner "local-exec" {
     command = <<EOT
 curl -s -X PUT \
   -H "Authorization: Bearer ${var.rancher_token}" \
   -H "Content-Type: application/json" \
-  --data '${data.template_file.keycloak_oidc_payload.rendered}' \
+  --data '${local.keycloak_oidc_payload}' \
   "${var.rancher_url}/v3/oidcConfigs/keycloak"
 EOT
   }
