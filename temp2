@@ -1,22 +1,25 @@
-variable "rancher_url" {
-  type = string
+data "template_file" "keycloak_oidc_payload" {
+  template = <<EOF
+{
+  "type": "oidcConfig",
+  "name": "keycloak",
+  "clientId": "${client_id}",
+  "clientSecret": "${client_secret}",
+  "issuer": "${issuer}",
+  "redirectUrl": "${redirect_url}/verify-auth",
+  "authEndpoint": "${issuer}/protocol/openid-connect/auth",
+  "tokenEndpoint": "${issuer}/protocol/openid-connect/token",
+  "userInfoEndpoint": "${issuer}/protocol/openid-connect/userinfo",
+  "rancherUrl": "${redirect_url}",
+  "scope": "openid profile email",
+  "enabled": true
 }
+EOF
 
-variable "rancher_token" {
-  type      = string
-  sensitive = true
-}
-
-variable "keycloak_issuer" {
-  description = "Issuer URL for Keycloak realm"
-  type        = string
-}
-
-variable "keycloak_client_id" {
-  type = string
-}
-
-variable "keycloak_client_secret" {
-  type      = string
-  sensitive = true
+  vars = {
+    client_id     = var.oidc_client_id
+    client_secret = var.oidc_client_secret
+    issuer        = var.oidc_issuer
+    redirect_url  = var.rancher_redirect_url
+  }
 }
