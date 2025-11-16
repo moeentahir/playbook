@@ -1,28 +1,11 @@
-apiVersion: logging.banzaicloud.io/v1beta1
-kind: ClusterFlow
-metadata:
-  name: remove-annotations-flow
-  namespace: cattle-logging-system
-  annotations:
-    logging.banzaicloud.io/fluentd-flow-stream-optimizations: "false"
-spec:
-  match:
-    - select: {}
-  filters:
-    # 1️⃣ Remove the "annotations" key from inside the "kubernetes" object
-    - record_transformer:
-        enable_ruby: true
-        records:
-          - kubernetes: "${record['kubernetes'].delete('annotations'); record['kubernetes']}"
-    # 2️⃣ Optional: your usual enrichment/renaming afterwards
-    - record_transformer:
-        enable_ruby: true
-        records:
-          - message: "${record['log']}"
-            host: "${hostname}"
-            environment: "prod"
-            namespace: "${kubernetes['namespace_name']}"
-            service: "${kubernetes['container_name']}"
-        remove_keys: "log"
-  globalOutputRefs:
-    - s3-output
+resource "null_resource" "configure_rancher_oidc" {
+  provisioner "local-exec" {
+    command = <<EOT
+curl -s -X PUT \
+  -H "Authorization: Bearer ${var.rancher_token}" \
+  -H "Content-Type: application/json" \
+  --data '${data.template_file.keycloak_oidc_payload.rendered}' \
+  "${var.rancher_url}/v3/oidcConfigs/keycloak"
+EOT
+  }
+}
