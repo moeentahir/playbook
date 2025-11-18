@@ -1,0 +1,87 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "table",
+      "title": "Pods Needing More CPU (Throttled / Over-using)",
+      "id": 1,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(container_cpu_cfs_throttled_seconds_total{container!=\"\",container!~\".*POD.*\"}[5m])",
+          "legendFormat": "{{ namespace }} / {{ pod }} / throttled",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\",container!~\".*POD.*\"}[5m])) by (namespace,pod) / sum(container_spec_cpu_request_cores{container!=\"\",container!~\".*POD.*\"}) by (namespace,pod) > 1",
+          "legendFormat": "{{ namespace }} / {{ pod }} / usage>request",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Pods Needing More Memory (OOM / High Usage)",
+      "id": 2,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "container_memory_working_set_bytes{container!=\"\",container!~\".*POD.*\"} / container_spec_memory_limit_bytes{container!=\"\",container!~\".*POD.*\"} > 0.9",
+          "legendFormat": "{{ namespace }} / {{ pod }} / mem>90%",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(kube_pod_container_status_last_terminated_reason{reason=\"OOMKilled\"}) by (namespace,pod)",
+          "legendFormat": "{{ namespace }} / {{ pod }} / oom_killed",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Pods With High Restart Count",
+      "id": 3,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "max(kube_pod_container_status_restarts_total) by (namespace,pod)",
+          "legendFormat": "{{ namespace }} / {{ pod }}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 8
+      }
+    }
+  ],
+  "schemaVersion": 38,
+  "version": 1,
+  "title": "Pod Resource Pressure Overview"
+}
