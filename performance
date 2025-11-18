@@ -1,0 +1,24 @@
+```
+kubectl top pod -n <namespace> --containers
+
+kubectl exec -n <namespace> <pod> -- \
+  cat /sys/fs/cgroup/cpu/cpu.stat
+
+kubectl get events -n <namespace> --sort-by='.lastTimestamp' | grep -i oom
+
+kubectl get pods -n <namespace> --sort-by='{.status.containerStatuses[*].restartCount}'
+```
+
+## Grafana queries
+Pods hitting CPU limit
+```
+rate(container_cpu_cfs_throttled_seconds_total{namespace="<namespace>"}[5m]) > 0
+```
+Containers near or exceeding memory limit
+```
+container_memory_working_set_bytes / container_spec_memory_limit_bytes > 0.9
+```
+Containers under-requested (usage > request)
+```
+container_cpu_usage_seconds_total / container_spec_cpu_request > 1
+```
