@@ -1,0 +1,27 @@
+export AWS_REGION=us-east-1
+export VPC_ID=vpc-xxxxxxxx
+export SUBNET_ID=subnet-xxxxxxxx
+
+aws ec2 describe-network-interfaces \
+  --filters \
+    Name=vpc-id,Values=$VPC_ID \
+    Name=subnet-id,Values=$SUBNET_ID \
+  --query 'NetworkInterfaces[].{
+    ENI:NetworkInterfaceId,
+    PrivateIP:PrivateIpAddress,
+    Type:InterfaceType,
+    Status:Status,
+    Description:Description,
+    AttachedTo:Attachment.InstanceId
+  }' \
+  --output table
+
+# Leaked IPs
+aws ec2 describe-network-interfaces \
+  --filters \
+    Name=vpc-id,Values=$VPC_ID \
+    Name=subnet-id,Values=$SUBNET_ID \
+    Name=status,Values=available \
+  --query 'NetworkInterfaces[].NetworkInterfaceId' \
+  --output table
+
