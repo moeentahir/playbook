@@ -1,5 +1,11 @@
-mongod \
-  --setParameter slowOpThresholdMs=0 \
-  --setParameter slowOpSampleRate=1 \
-  --setParameter logComponentVerbosity='{ "command": { "verbosity": 1 } }' \
-  --logpath=/dev/stdout
+<views>
+  <hudson.model.AllView>
+    <owner class="hudson" reference="../../.."/>
+    <name>All</name>
+    <filterExecutors>false</filterExecutors>
+    <filterQueue>false</filterQueue>
+    <properties class="hudson.model.View$PropertyList"/>
+  </hudson.model.AllView>
+</views>
+
+<primaryView>All</primaryView>
