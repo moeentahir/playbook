@@ -1,11 +1,25 @@
-<views>
-  <hudson.model.AllView>
-    <owner class="hudson" reference="../../.."/>
-    <name>All</name>
-    <filterExecutors>false</filterExecutors>
-    <filterQueue>false</filterQueue>
-    <properties class="hudson.model.View$PropertyList"/>
-  </hudson.model.AllView>
-</views>
-
-<primaryView>All</primaryView>
+db.yourCollection.aggregate([
+  {
+    $match: {
+      status: { $in: ["active", "pending"] },
+      createdAt: { $gte: ISODate("2024-01-01") }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        userId: "$userId",
+        category: "$category"
+      },
+      totalAmount: { $sum: "$amount" },
+      avgAmount: { $avg: "$amount" },
+      count: { $sum: 1 }
+    }
+  },
+  {
+    $sort: { totalAmount: -1 }
+  },
+  {
+    $limit: 1000
+  }
+], { allowDiskUse: true })
