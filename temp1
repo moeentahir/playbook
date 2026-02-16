@@ -43,3 +43,9 @@ collections.forEach((collName) => {
   const count = db.getCollection(collName).countDocuments();
   print(`${collName}: ${count} documents`);
 });
+
+db.yourCollection.deleteMany({
+  createdAt: {
+    $lt: new Date(new Date().setFullYear(new Date().getFullYear() - 5))
+  }
+})
