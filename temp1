@@ -32,3 +32,14 @@ db.yourCollection.find({
     $gte: new Date(new Date().setFullYear(new Date().getFullYear() - 1))
   }
 })
+
+
+
+
+// Get all collections in the current database
+const collections = db.getCollectionNames();
+
+collections.forEach((collName) => {
+  const count = db.getCollection(collName).countDocuments();
+  print(`${collName}: ${count} documents`);
+});
