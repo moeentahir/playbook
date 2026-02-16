@@ -23,3 +23,12 @@ db.yourCollection.aggregate([
     $limit: 1000
   }
 ], { allowDiskUse: true })
+
+
+
+
+db.yourCollection.find({
+  createdAt: {
+    $gte: new Date(new Date().setFullYear(new Date().getFullYear() - 1))
+  }
+})
