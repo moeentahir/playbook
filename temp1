@@ -1,51 +1,25 @@
-db.yourCollection.aggregate([
-  {
-    $match: {
-      status: { $in: ["active", "pending"] },
-      createdAt: { $gte: ISODate("2024-01-01") }
-    }
-  },
-  {
-    $group: {
-      _id: {
-        userId: "$userId",
-        category: "$category"
-      },
-      totalAmount: { $sum: "$amount" },
-      avgAmount: { $avg: "$amount" },
-      count: { $sum: 1 }
-    }
-  },
-  {
-    $sort: { totalAmount: -1 }
-  },
-  {
-    $limit: 1000
-  }
-], { allowDiskUse: true })
+keytool -importcert \
+  -file ca.pem \
+  -alias mongoCA \
+  -keystore truststore.jks \
+  -storepass changeit \
+  -noprompt
 
 
+openssl pkcs12 -export \
+  -in client.pem \
+  -out keystore.p12 \
+  -name mongo-client \
+  -passout pass:changeit
 
 
-db.yourCollection.find({
-  createdAt: {
-    $gte: new Date(new Date().setFullYear(new Date().getFullYear() - 1))
-  }
-})
+export JVM_OPTS="\
+-Djavax.net.ssl.trustStore=/tls/truststore.jks \
+-Djavax.net.ssl.trustStorePassword=changeit \
+-Djavax.net.ssl.keyStore=/tls/keystore.p12 \
+-Djavax.net.ssl.keyStorePassword=changeit"
 
 
-
-
-// Get all collections in the current database
-const collections = db.getCollectionNames();
-
-collections.forEach((collName) => {
-  const count = db.getCollection(collName).countDocuments();
-  print(`${collName}: ${count} documents`);
-});
-
-db.yourCollection.deleteMany({
-  createdAt: {
-    $lt: new Date(new Date().setFullYear(new Date().getFullYear() - 5))
-  }
-})
+./bin/ycsb run mongodb -s -P workloads/workloada \
+  -p operationcount=100000 \
+  -p mongodb.url="mongodb://user:pass@mongo-service:27017/ycsb_db?ssl=true"
