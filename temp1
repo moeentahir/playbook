@@ -23,3 +23,20 @@ export JVM_OPTS="\
 ./bin/ycsb run mongodb -s -P workloads/workloada \
   -p operationcount=100000 \
   -p mongodb.url="mongodb://user:pass@mongo-service:27017/ycsb_db?ssl=true"
+
+
+export JVM_OPTS="\
+-Djavax.net.debug=ssl,handshake \
+-Djavax.net.ssl.trustStore=/tls/truststore.jks \
+-Djavax.net.ssl.trustStorePassword=changeit"
+
+./bin/ycsb run mongodb -s \
+  -P workloads/workloada \
+  -p log4j.configuration=file:log4j.properties \
+  -p mongodb.url="mongodb://user:pass@mongo-service:27017/ycsb_db?ssl=true"
+
+log4j.properties
+log4j.logger.org.mongodb.driver=DEBUG
+log4j.logger.org.mongodb.driver.connection=DEBUG
+log4j.logger.org.mongodb.driver.cluster=DEBUG
+
