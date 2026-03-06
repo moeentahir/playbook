@@ -1,1 +1,35 @@
-kubectl get nodes -o json | jq '.items[] | {name: .metadata.name, diskPressure: .status.conditions[] | select(.type=="DiskPressure") | .status}'
+import jenkins.model.*
+import hudson.security.*
+import org.acegisecurity.context.SecurityContextHolder
+import org.acegisecurity.UsernamePasswordAuthenticationToken
+import hudson.model.User
+
+def username = "USERNAME_HERE"   // change this
+
+def jenkins = Jenkins.instance
+def user = User.getById(username, false)
+
+if (user == null) {
+    println "User '${username}' not found."
+    return
+}
+
+// Impersonate the user
+def auth = new UsernamePasswordAuthenticationToken(username, "", [])
+SecurityContextHolder.context.authentication = auth
+
+println "Checking permissions for user: ${username}"
+println "---------------------------------------"
+
+// Global permissions
+println "Global READ:      " + jenkins.hasPermission(Jenkins.READ)
+println "Global WRITE:     " + jenkins.hasPermission(Jenkins.ADMINISTER)
+
+// Job-level permissions
+println "Job READ:         " + jenkins.hasPermission(Item.READ)
+println "Job CONFIGURE:    " + jenkins.hasPermission(Item.CONFIGURE)
+println "Job CREATE:       " + jenkins.hasPermission(Item.CREATE)
+println "Job BUILD:        " + jenkins.hasPermission(Item.BUILD)
+
+// Reset authentication
+SecurityContextHolder.clearContext()
