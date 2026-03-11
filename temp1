@@ -7,3 +7,21 @@ spec:
   selector:
     matchLabels:
       app: my-service
+
+
+resource "kubernetes_pod_disruption_budget_v1" "my_service" {
+  metadata {
+    name      = "my-service-pdb"
+    namespace = "default"
+  }
+
+  spec {
+    min_available = 1
+
+    selector {
+      match_labels = {
+        app = "my-service"
+      }
+    }
+  }
+}
