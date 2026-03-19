@@ -1,23 +1,2 @@
-# Scale up to 4 at 07:00 Monday-Friday
-resource "aws_autoscaling_schedule" "scale_up_weekday" {
-  scheduled_action_name  = "scale-up-weekday"
-  autoscaling_group_name = aws_autoscaling_group.example.name
-
-  desired_capacity = 4
-  min_size         = 4
-  max_size         = 4
-
-  recurrence = "0 7 * * 1-5"
-}
-
-# Scale down at 19:00 Monday-Friday
-resource "aws_autoscaling_schedule" "scale_down_weekday" {
-  scheduled_action_name  = "scale-down-weekday"
-  autoscaling_group_name = aws_autoscaling_group.example.name
-
-  desired_capacity = 1
-  min_size         = 1
-  max_size         = 4
-
-  recurrence = "0 19 * * 1-5"
-}
+kubectl label node <control-plane-node> \
+  cluster-autoscaler.kubernetes.io/scale-down-disabled=true
